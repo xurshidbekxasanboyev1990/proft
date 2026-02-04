@@ -6,7 +6,7 @@
 
 ## [2026-02-04] - Analytics & Reports App qo'shildi
 
-**Commit:** `pending` - feat: Add analytics app with dashboard, reports, and export
+**Commit:** `545064e` - feat: Add analytics app with dashboard, reports, and export
 
 ### ✨ Yangi Funksiyalar
 
