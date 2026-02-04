@@ -1,0 +1,2 @@
+# dj-database-url for parsing DATABASE_URL
+dj-database-url>=2.1.0
