@@ -18,6 +18,7 @@ urlpatterns = [
     # API Endpoints
     path('api/accounts/', include('apps.accounts.urls', namespace='accounts')),
     path('api/portfolios/', include('apps.portfolios.urls', namespace='portfolios')),
+    path('api/assignments/', include('apps.assignments.urls', namespace='assignments')),
 ]
 
 # Serve media files in development

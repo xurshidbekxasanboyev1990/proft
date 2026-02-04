@@ -119,3 +119,80 @@ class AdminRequiredMixin(RoleRequiredMixin):
 class TeacherRequiredMixin(RoleRequiredMixin):
     """Mixin that requires teacher role (or higher)."""
     required_roles = ['teacher', 'admin', 'superadmin']
+
+
+# ==================== DRF Permission Classes ====================
+
+from rest_framework.permissions import BasePermission
+
+
+class IsAdminOrSuperAdmin(BasePermission):
+    """
+    DRF Permission class that allows only admins and superadmins.
+    """
+    message = 'Bu amal uchun admin yoki superadmin huquqi kerak.'
+    
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        return request.user.role in ['admin', 'superadmin']
+
+
+class IsSuperAdmin(BasePermission):
+    """
+    DRF Permission class that allows only superadmins.
+    """
+    message = 'Bu amal uchun superadmin huquqi kerak.'
+    
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        return request.user.role == 'superadmin'
+
+
+class IsTeacher(BasePermission):
+    """
+    DRF Permission class that allows teachers, admins, and superadmins.
+    """
+    message = 'Bu amal uchun o\'qituvchi huquqi kerak.'
+    
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        return request.user.role in ['teacher', 'admin', 'superadmin']
+
+
+class IsOwnerOrAdmin(BasePermission):
+    """
+    DRF Permission class that allows owners or admins.
+    Object-level permission.
+    """
+    message = 'Bu ob\'ektga kirish uchun ruxsat yo\'q.'
+    
+    def has_object_permission(self, request, view, obj):
+        if not request.user.is_authenticated:
+            return False
+        
+        # Admin/superadmin can access any object
+        if request.user.role in ['admin', 'superadmin']:
+            return True
+        
+        # Check if user is owner
+        if hasattr(obj, 'user'):
+            return obj.user == request.user
+        if hasattr(obj, 'created_by'):
+            return obj.created_by == request.user
+        if hasattr(obj, 'assigned_to'):
+            return obj.assigned_to == request.user
+        if hasattr(obj, 'submitted_by'):
+            return obj.submitted_by == request.user
+        
+        return False
+
+
+class IsReadOnly(BasePermission):
+    """
+    DRF Permission class that allows read-only access.
+    """
+    def has_permission(self, request, view):
+        return request.method in ['GET', 'HEAD', 'OPTIONS']
