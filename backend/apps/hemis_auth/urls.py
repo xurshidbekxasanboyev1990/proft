@@ -16,4 +16,7 @@ urlpatterns = [
     # Auth utilities
     path('status/', views.AuthStatusView.as_view(), name='status'),
     path('csrf/', views.CSRFTokenView.as_view(), name='csrf'),
+    
+    # Development login (DEBUG mode only)
+    path('dev-login/', views.DevLoginView.as_view(), name='dev_login'),
 ]

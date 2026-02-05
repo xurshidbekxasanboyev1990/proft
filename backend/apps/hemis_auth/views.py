@@ -238,3 +238,86 @@ class CSRFTokenView(View):
         return JsonResponse({
             'csrfToken': get_token(request)
         })
+
+
+class DevLoginView(View):
+    """
+    Development login endpoint (bypasses Hemis OAuth).
+    POST /auth/dev-login/
+    
+    Only available when DEBUG=True.
+    """
+    
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def post(self, request):
+        from django.conf import settings
+        from django.contrib.auth import authenticate, login, get_user_model
+        
+        # Only allow in DEBUG mode
+        if not settings.DEBUG:
+            return JsonResponse({
+                'error': 'Development login is only available in DEBUG mode'
+            }, status=403)
+        
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            return JsonResponse({
+                'error': 'Username and password are required'
+            }, status=400)
+        
+        User = get_user_model()
+        
+        # Try to authenticate
+        user = authenticate(request, username=username, password=password)
+        
+        if user is None:
+            # Check if user exists
+            try:
+                user_obj = User.objects.get(username=username)
+                return JsonResponse({
+                    'error': 'Parol noto\'g\'ri'
+                }, status=401)
+            except User.DoesNotExist:
+                return JsonResponse({
+                    'error': 'Foydalanuvchi topilmadi'
+                }, status=401)
+        
+        if not user.is_active:
+            return JsonResponse({
+                'error': 'Foydalanuvchi faol emas'
+            }, status=401)
+        
+        # Login user
+        login(request, user)
+        
+        return JsonResponse({
+            'message': 'Login successful',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'full_name': user.get_full_name(),
+                'role': user.role,
+                'role_display': user.get_role_display(),
+                'department': user.department,
+                'position': user.position,
+                'permissions': {
+                    'can_manage_users': user.can_manage_users,
+                    'can_approve_portfolios': user.can_approve_portfolios,
+                    'can_manage_all_portfolios': user.can_manage_all_portfolios,
+                }
+            },
+            'redirect': '/dashboard'
+        })

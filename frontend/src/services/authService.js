@@ -8,7 +8,7 @@ import api, { fetchCSRFToken } from './api'
 // Development mode check
 const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true'
 
-// Mock user for development
+// Mock user for development (when VITE_DEV_MODE=true)
 const MOCK_USER = {
   id: 1,
   username: 'test_superadmin',
@@ -89,6 +89,18 @@ export const authService = {
     }
     const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
     window.location.href = `${baseUrl}/auth/hemis/login/?next=${encodeURIComponent(next)}`
+  },
+  
+  /**
+   * Development login (bypasses Hemis OAuth)
+   * Only works when backend DEBUG=True
+   * @param {string} username - Username
+   * @param {string} password - Password
+   * @returns {Promise<Object>} Login response with user data
+   */
+  async devLogin(username, password) {
+    const response = await api.post('/auth/dev-login/', { username, password })
+    return response.data
   },
   
   /**
