@@ -132,7 +132,10 @@ import {
   DocumentChartBarIcon,
   ArrowDownTrayIcon,
   AcademicCapIcon,
-  ClockIcon
+  ClockIcon,
+  BellIcon,
+  InboxStackIcon,
+  TrophyIcon
 } from '@heroicons/vue/24/outline'
 import { useUserStore, usePortfolioStore } from '@/stores'
 
@@ -145,14 +148,17 @@ const portfolioStore = usePortfolioStore()
 // Main navigation (all users)
 const mainNavigation = [
   { name: 'Bosh sahifa', to: '/dashboard', icon: HomeIcon },
-  { name: 'Profil', to: '/profile', icon: UserCircleIcon }
+  { name: 'Profil', to: '/profile', icon: UserCircleIcon },
+  { name: 'Bildirishnomalar', to: '/notifications', icon: BellIcon }
 ]
 
 // Teacher navigation
 const teacherNavigation = [
   { name: 'Portfoliolarim', to: '/portfolios', icon: FolderIcon },
   { name: 'Yangi portfolio', to: '/portfolios/create', icon: PlusCircleIcon },
-  { name: 'Mening topshiriqlarim', to: '/my-assignments', icon: ClipboardDocumentListIcon }
+  { name: 'Mening topshiriqlarim', to: '/my-assignments', icon: ClipboardDocumentListIcon },
+  { name: 'Mening javoblarim', to: '/my-submissions', icon: InboxStackIcon },
+  { name: 'Mening ballarim', to: '/my-scores', icon: TrophyIcon }
 ]
 
 // Admin navigation

@@ -291,8 +291,57 @@ export const assignmentService = {
    * Barcha ball tarixini olish
    * @returns {Promise<Array>} Ball tarixi
    */
-  async getAllScoreHistory() {
-    const response = await api.get('/api/assignments/score-history/')
+  async getAllScoreHistory(params = {}) {
+    // DEV_MODE da mock data qaytarish
+    if (DEV_MODE) {
+      const mockHistory = [
+        {
+          id: 1,
+          assignment: { id: '1', title: 'Ilmiy maqola yozish', category: { name: 'Ilmiy maqola' } },
+          teacher: { id: 1, full_name: 'Test Teacher', department: 'Pedagogika' },
+          change_type: 'grade',
+          old_value: null,
+          new_value: 85,
+          changed_by: { full_name: 'Admin User', role: 'admin' },
+          note: 'Dastlabki baholash',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 2,
+          assignment: { id: '1', title: 'Ilmiy maqola yozish', category: { name: 'Ilmiy maqola' } },
+          teacher: { id: 1, full_name: 'Test Teacher', department: 'Pedagogika' },
+          change_type: 'score_update',
+          old_value: 85,
+          new_value: 90,
+          changed_by: { full_name: 'Admin User', role: 'admin' },
+          note: 'Ball oshirildi',
+          created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 3,
+          assignment: { id: '2', title: 'Esse tayyorlash', category: { name: 'Esse' } },
+          teacher: { id: 2, full_name: 'Another Teacher', department: 'IT' },
+          change_type: 'multiplier',
+          old_value: 1,
+          new_value: 1.5,
+          changed_by: { full_name: 'Super Admin', role: 'superadmin' },
+          note: '1.5x bonus qo\'llanildi',
+          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 4,
+          assignment: { id: '3', title: 'Loyiha hisoboti', category: { name: 'Loyiha' } },
+          teacher: { id: 1, full_name: 'Test Teacher', department: 'Pedagogika' },
+          change_type: 'grade',
+          old_value: null,
+          new_value: 78,
+          changed_by: { full_name: 'Admin User', role: 'admin' },
+          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+        }
+      ]
+      return { results: mockHistory, count: mockHistory.length }
+    }
+    const response = await api.get('/api/assignments/score-history/', { params })
     return response.data
   },
 
@@ -302,6 +351,17 @@ export const assignmentService = {
    * @returns {Promise<Object>} Natija
    */
   async bulkScoreUpdate(data) {
+    // DEV_MODE da mock response qaytarish
+    if (DEV_MODE) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            updated_count: data.assignment_ids?.length || 0,
+            message: 'Topshiriqlar muvaffaqiyatli yangilandi'
+          })
+        }, 1000)
+      })
+    }
     const response = await api.post('/api/assignments/bulk-score-update/', data)
     return response.data
   }

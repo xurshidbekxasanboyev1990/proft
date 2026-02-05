@@ -84,7 +84,12 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="item in history" :key="item.id" class="hover:bg-gray-50">
+              <tr 
+                v-for="item in history" 
+                :key="item.id" 
+                class="hover:bg-gray-50 cursor-pointer"
+                @click="openDetail(item)"
+              >
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ formatDate(item.created_at) }}
                 </td>
@@ -141,6 +146,14 @@
         />
       </div>
     </div>
+
+    <!-- Detail Modal -->
+    <ScoreHistoryDetailModal
+      :is-open="showDetailModal"
+      :item="selectedItem"
+      :related-history="getRelatedHistory(selectedItem)"
+      @close="showDetailModal = false"
+    />
   </div>
 </template>
 
@@ -148,11 +161,14 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import { SearchInput, SkeletonLoader, EmptyState, Pagination } from '@/components/common'
+import { ScoreHistoryDetailModal } from '@/components/grading'
 import { assignmentService } from '@/services'
 import dayjs from 'dayjs'
 
 const isLoading = ref(true)
 const isExporting = ref(false)
+const showDetailModal = ref(false)
+const selectedItem = ref(null)
 const history = ref([])
 
 const filters = reactive({
@@ -234,11 +250,64 @@ function getValueChangeClass(item) {
   return 'text-gray-900'
 }
 
+function openDetail(item) {
+  selectedItem.value = item
+  showDetailModal.value = true
+}
+
+function getRelatedHistory(item) {
+  if (!item?.assignment?.id) return []
+  return history.value.filter(h => h.assignment?.id === item.assignment.id)
+}
+
 async function exportHistory() {
   isExporting.value = true
   try {
-    // Implement export logic
-    console.log('Exporting history...')
+    // Backend API: POST /api/analytics/export/
+    const exportData = {
+      type: 'score_history',
+      format: 'excel',
+      date_from: filters.date_from || undefined,
+      date_to: filters.date_to || undefined
+    }
+    
+    // DEV_MODE da mock CSV yaratish
+    if (import.meta.env.VITE_DEV_MODE === 'true') {
+      const headers = ['Sana', 'Topshiriq', 'O\'qituvchi', 'O\'zgarish turi', 'Eski qiymat', 'Yangi qiymat', 'Kim tomonidan']
+      const rows = history.value.map(item => [
+        formatDate(item.created_at),
+        item.assignment?.title || '-',
+        item.teacher?.full_name || '-',
+        getChangeTypeLabel(item.change_type),
+        item.old_value ?? '-',
+        item.new_value ?? '-',
+        item.changed_by?.full_name || 'Sistema'
+      ])
+      
+      const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ball_tarixi_${dayjs().format('YYYY-MM-DD')}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } else {
+      const response = await fetch('/api/analytics/export/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(exportData)
+      })
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ball_tarixi_${dayjs().format('YYYY-MM-DD')}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+  } catch (error) {
+    console.error('Export failed:', error)
   } finally {
     isExporting.value = false
   }

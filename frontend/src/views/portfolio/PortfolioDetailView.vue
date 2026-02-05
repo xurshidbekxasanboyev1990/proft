@@ -20,15 +20,26 @@
             </div>
           </div>
           
-          <div v-if="portfolio.permissions?.can_edit" class="flex items-center gap-2">
-            <RouterLink :to="`/portfolios/${portfolio.id}/edit`" class="btn-secondary">
-              <PencilIcon class="w-4 h-4 mr-2" />
-              Tahrirlash
-            </RouterLink>
-            <button @click="showDeleteModal = true" class="btn-danger">
-              <TrashIcon class="w-4 h-4 mr-2" />
-              O'chirish
+          <div class="flex items-center gap-2">
+            <!-- PDF Export button -->
+            <button @click="exportPdf" class="btn-secondary" :disabled="isExporting">
+              <LoadingSpinner v-if="isExporting" size="xs" />
+              <template v-else>
+                <ArrowDownTrayIcon class="w-4 h-4 mr-2" />
+                PDF
+              </template>
             </button>
+            
+            <template v-if="portfolio.permissions?.can_edit">
+              <RouterLink :to="`/portfolios/${portfolio.id}/edit`" class="btn-secondary">
+                <PencilIcon class="w-4 h-4 mr-2" />
+                Tahrirlash
+              </RouterLink>
+              <button @click="showDeleteModal = true" class="btn-danger">
+                <TrashIcon class="w-4 h-4 mr-2" />
+                O'chirish
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -239,6 +250,7 @@ const portfolioStore = usePortfolioStore()
 const isLoading = ref(true)
 const showDeleteModal = ref(false)
 const isDeleting = ref(false)
+const isExporting = ref(false)
 const newComment = ref('')
 const isAddingComment = ref(false)
 
@@ -290,6 +302,47 @@ async function handleDelete() {
     console.error('Failed to delete:', error)
   } finally {
     isDeleting.value = false
+  }
+}
+
+async function exportPdf() {
+  isExporting.value = true
+  try {
+    // Backend API: POST /api/analytics/export/
+    const response = await fetch('/api/analytics/export/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'portfolios',
+        format: 'pdf',
+        portfolio_id: portfolio.value.id
+      })
+    })
+    
+    // DEV_MODE da mock PDF yaratish
+    if (import.meta.env.VITE_DEV_MODE === 'true') {
+      // Create simple text blob as mock PDF
+      const content = `Portfolio: ${portfolio.value.title}\n\nTavsif: ${portfolio.value.description}\n\nMuallif: ${portfolio.value.teacher?.full_name}\nSana: ${new Date().toLocaleDateString()}`
+      const blob = new Blob([content], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `portfolio_${portfolio.value.id}.txt`
+      a.click()
+      URL.revokeObjectURL(url)
+    } else {
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `portfolio_${portfolio.value.id}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+  } catch (error) {
+    console.error('Export failed:', error)
+  } finally {
+    isExporting.value = false
   }
 }
 </script>

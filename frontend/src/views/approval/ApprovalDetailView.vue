@@ -186,17 +186,28 @@
       @action="$router.push('/approval')"
     />
     
-    <!-- Approve modal -->
-    <ConfirmModal
-      :is-open="showApproveModal"
-      title="Tasdiqlash"
-      message="Bu portfolioni tasdiqlashga ishonchingiz komilmi?"
-      type="success"
-      confirm-text="Tasdiqlash"
-      :is-loading="isProcessing"
-      @confirm="confirmApprove"
-      @cancel="showApproveModal = false"
-    />
+    <!-- Approve modal with comment -->
+    <BaseModal :is-open="showApproveModal" title="Tasdiqlash" @close="showApproveModal = false">
+      <p class="text-sm text-gray-600 mb-4">
+        Bu portfolioni tasdiqlashga ishonchingiz komilmi?
+      </p>
+      <div>
+        <label class="form-label">Izoh (ixtiyoriy)</label>
+        <textarea 
+          v-model="approveComment" 
+          rows="3" 
+          class="form-input"
+          placeholder="Tasdiqlash bo'yicha izoh..."
+        ></textarea>
+      </div>
+      <template #footer>
+        <button @click="showApproveModal = false" class="btn-secondary">Bekor qilish</button>
+        <button @click="confirmApprove" class="btn-success" :disabled="isProcessing">
+          <LoadingSpinner v-if="isProcessing" size="xs" color="white" />
+          <span v-else>Tasdiqlash</span>
+        </button>
+      </template>
+    </BaseModal>
     
     <!-- Reject modal -->
     <BaseModal :is-open="showRejectModal" title="Rad etish" @close="showRejectModal = false">
@@ -228,7 +239,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckIcon, XMarkIcon, UserIcon } from '@heroicons/vue/24/outline'
-import { LoadingSpinner, StatusBadge, AlertBox, EmptyState, ConfirmModal, BaseModal } from '@/components/common'
+import { LoadingSpinner, StatusBadge, AlertBox, EmptyState, BaseModal } from '@/components/common'
 import { usePortfolioStore } from '@/stores'
 import dayjs from 'dayjs'
 
@@ -242,6 +253,7 @@ const portfolio = computed(() => portfolioStore.currentPortfolio)
 const reviewComment = ref('')
 const showApproveModal = ref(false)
 const showRejectModal = ref(false)
+const approveComment = ref('')
 const rejectComment = ref('')
 const rejectError = ref('')
 const isProcessing = ref(false)
@@ -261,6 +273,7 @@ function formatDate(date) {
 }
 
 function handleApprove() {
+  approveComment.value = reviewComment.value
   showApproveModal.value = true
 }
 
@@ -273,7 +286,8 @@ function handleReject() {
 async function confirmApprove() {
   isProcessing.value = true
   try {
-    await portfolioStore.approvePortfolio(portfolio.value.id, reviewComment.value)
+    // Backend API: POST /api/portfolios/{id}/approve/ with { comment: string }
+    await portfolioStore.approvePortfolio(portfolio.value.id, approveComment.value || reviewComment.value)
     showApproveModal.value = false
     router.push('/approval')
   } catch (error) {

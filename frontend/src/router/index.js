@@ -46,6 +46,14 @@ const CategoriesListView = () => import('@/views/categories/CategoriesListView.v
 const ScoreHistoryView = () => import('@/views/grading/ScoreHistoryView.vue')
 const SubmissionsListView = () => import('@/views/grading/SubmissionsListView.vue')
 
+// Teacher - Submissions & Scores
+const SubmitAssignmentView = () => import('@/views/assignments/SubmitAssignmentView.vue')
+const MySubmissionsView = () => import('@/views/submissions/MySubmissionsView.vue')
+const MyScoresView = () => import('@/views/scores/MyScoresView.vue')
+
+// Notifications
+const NotificationsView = () => import('@/views/notifications/NotificationsView.vue')
+
 // Analytics
 const AnalyticsDashboardView = () => import('@/views/analytics/AnalyticsDashboardView.vue')
 
@@ -220,6 +228,42 @@ const routes = [
         meta: { 
           title: 'Mening topshiriqlarim',
           roles: ['teacher']
+        }
+      },
+      {
+        path: 'assignments/:id/submit',
+        name: 'submit-assignment',
+        component: SubmitAssignmentView,
+        meta: { 
+          title: 'Javob yuborish',
+          roles: ['teacher']
+        }
+      },
+      {
+        path: 'my-submissions',
+        name: 'my-submissions',
+        component: MySubmissionsView,
+        meta: { 
+          title: 'Mening javoblarim',
+          roles: ['teacher']
+        }
+      },
+      {
+        path: 'my-scores',
+        name: 'my-scores',
+        component: MyScoresView,
+        meta: { 
+          title: 'Mening ballarim',
+          roles: ['teacher']
+        }
+      },
+      {
+        path: 'notifications',
+        name: 'notifications',
+        component: NotificationsView,
+        meta: { 
+          title: 'Bildirishnomalar',
+          roles: ['teacher', 'admin', 'superadmin']
         }
       },
 

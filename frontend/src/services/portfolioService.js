@@ -191,6 +191,30 @@ export const portfolioService = {
    * @returns {Promise<Object>} Upload response
    */
   async uploadAttachments(portfolioId, files, onProgress = null) {
+    // DEV_MODE da mock upload simulatsiyasi
+    if (DEV_MODE) {
+      return new Promise((resolve) => {
+        let progress = 0
+        const interval = setInterval(() => {
+          progress += 10
+          if (onProgress) onProgress(progress)
+          if (progress >= 100) {
+            clearInterval(interval)
+            resolve({
+              uploaded: files.map((file, index) => ({
+                id: Date.now() + index,
+                name: file.name,
+                size: file.size,
+                url: URL.createObjectURL(file),
+                uploaded_at: new Date().toISOString()
+              })),
+              message: 'Fayllar muvaffaqiyatli yuklandi'
+            })
+          }
+        }, 200)
+      })
+    }
+    
     const formData = new FormData()
     files.forEach(file => {
       formData.append('files', file)
