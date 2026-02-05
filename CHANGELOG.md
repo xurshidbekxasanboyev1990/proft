@@ -6,7 +6,7 @@
 
 ## [2026-02-04] - Swagger/OpenAPI + Ball Tizimi (Scoring System)
 
-**Commit:** `pending` - feat: Add Swagger/OpenAPI docs and dynamic scoring system
+**Commit:** `819ee7a` - feat: Add Swagger/OpenAPI docs and dynamic scoring system
 
 ### ✨ Yangi Funksiyalar
 
