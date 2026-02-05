@@ -44,6 +44,7 @@ THIRD_PARTY_APPS = [
     'django_extensions',
     'rest_framework',
     'django_filters',
+    'drf_spectacular',
 ]
 
 LOCAL_APPS = [
@@ -52,6 +53,7 @@ LOCAL_APPS = [
     'apps.hemis_auth',
     'apps.assignments',
     'apps.analytics',
+    'apps.swagger',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -211,6 +213,79 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
     'DATE_FORMAT': '%Y-%m-%d',
     'TIME_FORMAT': '%H:%M:%S',
+    # Swagger/OpenAPI Schema
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# DRF Spectacular (Swagger/OpenAPI) Configuration
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Portfolio Management System API',
+    'DESCRIPTION': '''
+## O\'qituvchilar Portfolio Boshqaruv Tizimi
+
+Bu API Hemis OAuth 2.0 autentifikatsiya bilan ishlaydi.
+
+### Asosiy Funksiyalar:
+- 📚 **Portfoliolar** - O'qituvchilar portfoliosini boshqarish
+- 📋 **Topshiriqlar** - Admin/SuperAdmin tomonidan topshiriq berish
+- 📁 **Kategoriyalar** - Tezis, Esse, Maqola va boshqalar
+- 📊 **Analytics** - Dashboard va hisobotlar
+- 🎯 **Ball Tizimi** - Dinamik baholash
+
+### Autentifikatsiya:
+- Hemis OAuth 2.0 orqali login
+- Session-based authentication
+- CSRF token kerak (cookie)
+
+### Rollar:
+- **SuperAdmin** - To'liq huquq
+- **Admin** - Boshqaruv huquqlari
+- **Teacher** - O'qituvchi huquqlari
+    ''',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    
+    # Contact info
+    'CONTACT': {
+        'name': 'API Support',
+        'email': 'support@portfolio.uz',
+    },
+    
+    # License
+    'LICENSE': {
+        'name': 'MIT License',
+    },
+    
+    # Tags
+    'TAGS': [
+        {'name': 'Authentication', 'description': 'Autentifikatsiya'},
+        {'name': 'Users', 'description': 'Foydalanuvchilar'},
+        {'name': 'Portfolios', 'description': 'Portfoliolar'},
+        {'name': 'Categories', 'description': 'Kategoriyalar'},
+        {'name': 'Assignments', 'description': 'Topshiriqlar'},
+        {'name': 'Scoring', 'description': 'Ball tizimi'},
+        {'name': 'Analytics', 'description': 'Statistika'},
+        {'name': 'Reports', 'description': 'Hisobotlar'},
+    ],
+    
+    # Schema customization
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    
+    # Authentication
+    'SECURITY': [
+        {'sessionAuth': []},
+    ],
+    
+    # Enum handling
+    'ENUM_NAME_OVERRIDES': {
+        'StatusEnum': 'apps.assignments.models.Assignment.STATUS_CHOICES',
+        'PriorityEnum': 'apps.assignments.models.Assignment.PRIORITY_CHOICES',
+    },
+    
+    # Preprocessing/Postprocessing hooks
+    'PREPROCESSING_HOOKS': ['apps.swagger.hooks.custom_preprocessing_hook'],
+    'POSTPROCESSING_HOOKS': ['apps.swagger.hooks.custom_postprocessing_hook'],
 }
 
 # Hemis OAuth 2.0 Configuration

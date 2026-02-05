@@ -20,6 +20,9 @@ urlpatterns = [
     path('api/portfolios/', include('apps.portfolios.urls', namespace='portfolios')),
     path('api/assignments/', include('apps.assignments.urls', namespace='assignments')),
     path('api/analytics/', include('apps.analytics.urls', namespace='analytics')),
+    
+    # API Documentation (Swagger/OpenAPI)
+    path('api/docs/', include('apps.swagger.urls', namespace='swagger')),
 ]
 
 # Serve media files in development

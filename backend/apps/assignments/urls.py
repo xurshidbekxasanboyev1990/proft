@@ -22,11 +22,19 @@ urlpatterns = [
     # Categories (legacy/custom views)
     path('categories/', views.CategoryListView.as_view(), name='category_list'),
     path('categories/<int:category_id>/', views.CategoryDetailView.as_view(), name='category_detail'),
+    path('categories/<int:category_id>/score/', views.CategoryScoreUpdateView.as_view(), name='category_score'),
     
     # Assignments (legacy/custom views)
     path('list/', views.AssignmentListView.as_view(), name='list'),
     path('<int:assignment_id>/', views.AssignmentDetailView.as_view(), name='detail'),
     path('bulk/', views.BulkAssignmentView.as_view(), name='bulk_create'),
+    
+    # Ball (Score) Tizimi endpoints
+    path('<int:assignment_id>/score/', views.AssignmentScoreUpdateView.as_view(), name='assignment_score'),
+    path('<int:assignment_id>/score-history/', views.ScoreHistoryListView.as_view(), name='assignment_score_history'),
+    path('progress/<int:progress_id>/grade/', views.AssignmentProgressGradeView.as_view(), name='progress_grade'),
+    path('score-history/', views.ScoreHistoryListView.as_view(), name='score_history_all'),
+    path('bulk-score-update/', views.BulkScoreUpdateView.as_view(), name='bulk_score_update'),
     
     # Teacher dashboard
     path('my-dashboard/', views.TeacherAssignmentDashboardView.as_view(), name='teacher_dashboard'),

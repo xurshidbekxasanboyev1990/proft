@@ -4,6 +4,156 @@
 
 ---
 
+## [2026-02-04] - Swagger/OpenAPI + Ball Tizimi (Scoring System)
+
+**Commit:** `pending` - feat: Add Swagger/OpenAPI docs and dynamic scoring system
+
+### ✨ Yangi Funksiyalar
+
+#### 📚 Swagger/OpenAPI Documentation
+- **drf-spectacular** integratsiyasi
+- Interactive API documentation
+- Schema download (JSON/YAML)
+- ReDoc alternative view
+
+#### 🎯 Ball (Score) Tizimi
+
+##### Kategoriya uchun standart ball
+- `default_score` - standart maksimal ball (masalan: esse=10)
+- `min_score` - minimal qabul qilinadigan ball
+- `score_weight` - kategoriya vazni (1.0 default)
+
+##### Topshiriq uchun maxsus ball
+- `use_custom_score` - maxsus ball ishlatish
+- `custom_max_score` - maxsus maksimal ball (admin o'zgartirishi mumkin, masalan: esse=20)
+- `custom_min_score` - maxsus minimal ball
+- `score_multiplier` - ball ko'paytiruvchi (2x bonus uchun)
+- `score_note` - ball haqida izoh
+
+##### Ball hisoblash
+```
+final_score = raw_score × category.score_weight × assignment.score_multiplier
+```
+
+##### Progress baholash
+- `raw_score` - xom ball (baholovchi kiradi)
+- `final_score` - hisoblangan yakuniy ball
+- `grade_note` - baholash izohi
+- `graded_by` / `graded_at` - kim va qachon baholadi
+
+##### Ball tarixi (ScoreHistory)
+- Barcha ball o'zgarishlarini kuzatish
+- Kim, qachon, nima o'zgartirdi
+
+### 📡 API Endpoints
+
+#### Swagger URLs
+| Method | Endpoint | Tavsif |
+|--------|----------|--------|
+| GET | `/api/docs/` | Swagger UI |
+| GET | `/api/docs/schema/` | OpenAPI schema (JSON) |
+| GET | `/api/docs/schema/?format=yaml` | OpenAPI schema (YAML) |
+| GET | `/api/docs/redoc/` | ReDoc documentation |
+
+#### Ball Tizimi APIs
+| Method | Endpoint | Tavsif |
+|--------|----------|--------|
+| GET/PUT | `/api/assignments/{id}/score/` | Topshiriq ball sozlamalarini olish/yangilash |
+| GET | `/api/assignments/{id}/score-history/` | Topshiriq ball tarixi |
+| PUT | `/api/assignments/progress/{id}/grade/` | Progress baholash |
+| GET | `/api/assignments/score-history/` | Barcha ball tarixi |
+| POST | `/api/assignments/bulk-score-update/` | Bulk ball yangilash |
+| PUT | `/api/assignments/categories/{id}/score/` | Kategoriya ball sozlamalarini yangilash |
+
+#### Ball Tizimi Request Examples
+
+**Topshiriq uchun maxsus ball sozlash:**
+```json
+PUT /api/assignments/123/score/
+{
+  "use_custom_score": true,
+  "custom_max_score": 20,      // esse 10 emas, 20 ball
+  "score_multiplier": 1.5,     // 1.5x bonus
+  "score_note": "A'lo ish uchun qo'shimcha ball"
+}
+```
+
+**Progress baholash:**
+```json
+PUT /api/assignments/progress/456/grade/
+{
+  "raw_score": 18,
+  "grade_note": "Juda yaxshi bajarilgan"
+}
+```
+Response: `{ "raw_score": 18, "final_score": 27.0 }` (18 × 1.5)
+
+**Bulk ball yangilash:**
+```json
+POST /api/assignments/bulk-score-update/
+{
+  "assignment_ids": ["uuid1", "uuid2", "uuid3"],
+  "custom_max_score": 25,
+  "score_multiplier": 2.0,
+  "score_note": "2x bonus barcha uchun"
+}
+```
+
+### 📁 Yangi/O'zgartirilgan Fayllar
+
+#### Yangi
+```
+backend/apps/swagger/
+├── __init__.py
+├── apps.py           # SwaggerConfig
+├── urls.py           # Swagger URLs
+├── extensions.py     # Custom auth schemes
+└── hooks.py          # Schema pre/post processing
+```
+
+#### O'zgartirilgan
+```
+backend/apps/assignments/
+├── models.py         # Category, Assignment, AssignmentProgress, ScoreHistory (yangi)
+├── admin.py          # Ball tizimi admin
+├── serializers.py    # Ball tizimi serializers
+├── views.py          # Ball tizimi views
+└── urls.py           # Ball tizimi URLs
+
+backend/config/
+├── settings.py       # SPECTACULAR_SETTINGS
+└── urls.py           # Swagger URLs
+
+backend/requirements.txt  # drf-spectacular
+```
+
+### 📦 Yangi Dependencies
+```
+drf-spectacular>=0.27.0        # OpenAPI 3.0 schema generator
+drf-spectacular-sidecar>=2024.1.1  # Swagger UI assets
+```
+
+### 🔧 Admin Panel
+
+#### CategoryAdmin
+- `score_display` - standart ball ko'rsatish
+- `weight_display` - vazn ko'rsatish
+- Ball sozlamalari fieldset
+
+#### AssignmentAdmin
+- `score_info_display` - ball info
+- Maxsus ball fieldset
+- Bulk actions: "2x bonus", "Reset to default"
+
+#### AssignmentProgressAdmin
+- `score_display` - ball va foiz
+- Baholash fieldset
+
+#### ScoreHistoryAdmin
+- Read-only tarix
+
+---
+
 ## [2026-02-04] - Analytics & Reports App qo'shildi
 
 **Commit:** `545064e` - feat: Add analytics app with dashboard, reports, and export
