@@ -3,6 +3,7 @@ Views for accounts app.
 """
 
 import json
+from django.db import models
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.http import require_http_methods
@@ -282,3 +283,27 @@ def get_client_ip(request):
     if x_forwarded_for:
         return x_forwarded_for.split(',')[0]
     return request.META.get('REMOTE_ADDR')
+
+
+class UserStatsView(View):
+    """
+    Get user statistics (Super Admin only).
+    GET /api/accounts/users/stats/
+    """
+    
+    @method_decorator(superadmin_required)
+    def get(self, request):
+        total = User.objects.count()
+        superadmin_count = User.objects.filter(role='superadmin').count()
+        admin_count = User.objects.filter(role='admin').count()
+        teacher_count = User.objects.filter(role='teacher').count()
+        active_count = User.objects.filter(is_active=True).count()
+        
+        return JsonResponse({
+            'total': total,
+            'superadmin': superadmin_count,
+            'admin': admin_count,
+            'teacher': teacher_count,
+            'active': active_count,
+            'inactive': total - active_count
+        })

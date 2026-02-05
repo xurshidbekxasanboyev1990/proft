@@ -587,3 +587,84 @@ class PortfolioCommentView(View):
                 'created_at': comment.created_at.isoformat(),
             }
         }, status=201)
+
+
+class PortfolioAttachmentView(View):
+    """
+    Upload/delete attachments for a portfolio.
+    POST /api/portfolios/<id>/attachments/
+    DELETE /api/portfolios/<id>/attachments/<attachment_id>/
+    """
+    
+    @method_decorator(csrf_protect)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+    def post(self, request, portfolio_id):
+        """Upload attachments to portfolio"""
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Authentication required'}, status=401)
+        
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            return JsonResponse({'error': 'Portfolio not found'}, status=404)
+        
+        # Check permission (only owner or superadmin can upload)
+        if not rules.has_perm('portfolios.edit_portfolio', request.user, portfolio):
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+        
+        files = request.FILES.getlist('files')
+        if not files:
+            return JsonResponse({'error': 'No files provided'}, status=400)
+        
+        uploaded = []
+        for f in files:
+            # Check file size (max 10MB)
+            if f.size > 10 * 1024 * 1024:
+                continue
+            
+            attachment = PortfolioAttachment.objects.create(
+                portfolio=portfolio,
+                title=f.name,
+                file=f,
+                file_type=f.content_type,
+                file_size=f.size
+            )
+            uploaded.append({
+                'id': attachment.id,
+                'title': attachment.title,
+                'file': attachment.file.url,
+                'file_type': attachment.file_type,
+                'file_size': attachment.file_size,
+            })
+        
+        return JsonResponse({
+            'message': f'{len(uploaded)} file(s) uploaded successfully',
+            'attachments': uploaded
+        }, status=201)
+    
+    def delete(self, request, portfolio_id, attachment_id=None):
+        """Delete attachment from portfolio"""
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Authentication required'}, status=401)
+        
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            return JsonResponse({'error': 'Portfolio not found'}, status=404)
+        
+        # Check permission
+        if not rules.has_perm('portfolios.edit_portfolio', request.user, portfolio):
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+        
+        if not attachment_id:
+            return JsonResponse({'error': 'Attachment ID required'}, status=400)
+        
+        try:
+            attachment = PortfolioAttachment.objects.get(id=attachment_id, portfolio=portfolio)
+            attachment.file.delete()  # Delete actual file
+            attachment.delete()
+            return JsonResponse({'message': 'Attachment deleted successfully'})
+        except PortfolioAttachment.DoesNotExist:
+            return JsonResponse({'error': 'Attachment not found'}, status=404)

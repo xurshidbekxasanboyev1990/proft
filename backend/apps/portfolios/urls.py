@@ -19,6 +19,10 @@ urlpatterns = [
     # Comments
     path('<int:portfolio_id>/comments/', views.PortfolioCommentView.as_view(), name='comments'),
     
+    # Attachments
+    path('<int:portfolio_id>/attachments/', views.PortfolioAttachmentView.as_view(), name='attachments'),
+    path('<int:portfolio_id>/attachments/<int:attachment_id>/', views.PortfolioAttachmentView.as_view(), name='attachment_delete'),
+    
     # Statistics
     path('stats/', views.PortfolioStatsView.as_view(), name='stats'),
 ]

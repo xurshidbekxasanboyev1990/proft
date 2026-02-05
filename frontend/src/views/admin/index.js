@@ -1,0 +1,5 @@
+export { default as AdminDashboardView } from './AdminDashboardView.vue'
+export { default as UserManagementView } from './UserManagementView.vue'
+export { default as UserCreateView } from './UserCreateView.vue'
+export { default as UserEditView } from './UserEditView.vue'
+export { default as ReportsView } from './ReportsView.vue'

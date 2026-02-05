@@ -13,5 +13,6 @@ urlpatterns = [
     
     # User management (Super Admin only)
     path('users/', views.UserListView.as_view(), name='user_list'),
+    path('users/stats/', views.UserStatsView.as_view(), name='user_stats'),
     path('users/<int:user_id>/', views.UserDetailView.as_view(), name='user_detail'),
 ]
