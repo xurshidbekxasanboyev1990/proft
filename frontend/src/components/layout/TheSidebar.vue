@@ -23,7 +23,7 @@
         leave-from="translate-x-0"
         leave-to="-translate-x-full"
       >
-        <div class="fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl">
+        <div class="fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl dark:bg-gray-800">
           <SidebarContent @close="$emit('close')" />
         </div>
       </TransitionChild>
@@ -32,7 +32,7 @@
   
   <!-- Desktop sidebar -->
   <div class="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-72 lg:flex-col">
-    <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white border-r border-gray-200 px-6 pb-4">
+    <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white border-r border-gray-200 px-6 pb-4 dark:bg-gray-800 dark:border-gray-700">
       <SidebarContent />
     </div>
   </div>

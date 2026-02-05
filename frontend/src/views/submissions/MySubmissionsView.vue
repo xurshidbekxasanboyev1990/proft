@@ -277,7 +277,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import {
   DocumentTextIcon,
   CalendarIcon,
@@ -290,6 +290,16 @@ import { StatsCard, SearchInput, SkeletonLoader, EmptyState, StatusBadge, Pagina
 import { formatDate } from '@/utils/date'
 
 const router = useRouter()
+const route = useRoute()
+
+// Dynamic base path based on current route
+const basePath = computed(() => {
+  const path = route.path
+  if (path.startsWith('/teacher')) return '/teacher/tasks'
+  if (path.startsWith('/admin-panel')) return '/admin-panel/tasks'
+  if (path.startsWith('/super-admin')) return '/super-admin/tasks'
+  return '/teacher/tasks'
+})
 
 const isLoading = ref(true)
 const showViewModal = ref(false)
@@ -400,7 +410,7 @@ function viewSubmission(submission) {
 }
 
 function resubmit(submission) {
-  router.push(`/assignments/${submission.assignment?.id}/submit`)
+  router.push(`${basePath.value}/${submission.assignment?.id}/submit`)
 }
 
 function handlePageChange(page) {

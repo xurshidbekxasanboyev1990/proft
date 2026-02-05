@@ -1,11 +1,11 @@
 <template>
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40 dark:bg-gray-800 dark:border-gray-700">
     <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
       <!-- Left: Menu button (mobile) + Logo -->
       <div class="flex items-center gap-4">
         <button 
           @click="$emit('toggle-sidebar')"
-          class="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+          class="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors dark:text-gray-400 dark:hover:bg-gray-700"
         >
           <Bars3Icon class="w-6 h-6" />
         </button>
@@ -14,15 +14,18 @@
           <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
             <span class="text-white font-bold text-lg">P</span>
           </div>
-          <span class="text-xl font-bold text-gray-900 hidden sm:block">Proft</span>
+          <span class="text-xl font-bold text-gray-900 hidden sm:block dark:text-white">Proft</span>
         </RouterLink>
       </div>
       
-      <!-- Right: User menu -->
-      <div class="flex items-center gap-4">
+      <!-- Right: Theme toggle + Notifications + User menu -->
+      <div class="flex items-center gap-2 sm:gap-4">
+        <!-- Theme toggle -->
+        <ThemeToggle />
+        
         <!-- Notifications dropdown -->
         <Menu as="div" class="relative">
-          <MenuButton class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors relative">
+          <MenuButton class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors relative dark:text-gray-400 dark:hover:bg-gray-700">
             <BellIcon class="w-6 h-6" />
             <span v-if="notificationCount > 0" class="absolute top-1 right-1 w-2 h-2 bg-danger-500 rounded-full"></span>
           </MenuButton>
@@ -35,10 +38,10 @@
             leave-from-class="transform scale-100 opacity-100"
             leave-to-class="transform scale-95 opacity-0"
           >
-            <MenuItems class="absolute right-0 mt-2 w-80 origin-top-right bg-white rounded-xl shadow-lg ring-1 ring-black/5 focus:outline-none">
+            <MenuItems class="absolute right-0 mt-2 w-80 origin-top-right bg-white rounded-xl shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
               <!-- Header -->
-              <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="font-medium text-gray-900">Bildirishnomalar</h3>
+              <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between dark:border-gray-700">
+                <h3 class="font-medium text-gray-900 dark:text-white">Bildirishnomalar</h3>
                 <span v-if="notificationCount > 0" class="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">
                   {{ notificationCount }} yangi
                 </span>
@@ -50,8 +53,8 @@
                   <div 
                     @click="handleNotificationClick(notification, close)"
                     :class="[
-                      active ? 'bg-gray-50' : '',
-                      'px-4 py-3 cursor-pointer border-b border-gray-50 last:border-0'
+                      active ? 'bg-gray-50 dark:bg-gray-700' : '',
+                      'px-4 py-3 cursor-pointer border-b border-gray-50 last:border-0 dark:border-gray-700'
                     ]"
                   >
                     <div class="flex items-start gap-3">
@@ -64,8 +67,8 @@
                         <component :is="getNotificationIcon(notification.type)" class="w-4 h-4" />
                       </div>
                       <div class="flex-1 min-w-0">
-                        <p class="text-sm text-gray-900">{{ notification.title }}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ notification.time }}</p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ notification.title }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400">{{ notification.time }}</p>
                       </div>
                     </div>
                   </div>
@@ -73,16 +76,16 @@
                 
                 <!-- Empty state -->
                 <div v-if="notifications.length === 0" class="px-4 py-8 text-center">
-                  <BellIcon class="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                  <p class="text-sm text-gray-500">Bildirishnomalar yo'q</p>
+                  <BellIcon class="w-8 h-8 text-gray-300 mx-auto mb-2 dark:text-gray-600" />
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Bildirishnomalar yo'q</p>
                 </div>
               </div>
               
               <!-- Footer -->
-              <div class="px-4 py-2 border-t border-gray-100">
+              <div class="px-4 py-2 border-t border-gray-100 dark:border-gray-700">
                 <RouterLink 
                   to="/my-assignments" 
-                  class="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                  class="text-sm text-primary-600 hover:text-primary-700 font-medium dark:text-primary-400"
                 >
                   Barchasini ko'rish
                 </RouterLink>
@@ -93,15 +96,15 @@
         
         <!-- User dropdown -->
         <Menu as="div" class="relative">
-          <MenuButton class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-              <span class="text-primary-700 font-medium text-sm">
+          <MenuButton class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors dark:hover:bg-gray-700">
+            <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center dark:bg-primary-900">
+              <span class="text-primary-700 font-medium text-sm dark:text-primary-300">
                 {{ userInitials }}
               </span>
             </div>
             <div class="hidden sm:block text-left">
-              <p class="text-sm font-medium text-gray-900">{{ userStore.fullName }}</p>
-              <p class="text-xs text-gray-500">{{ roleDisplay }}</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ userStore.fullName }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ roleDisplay }}</p>
             </div>
             <ChevronDownIcon class="w-4 h-4 text-gray-400 hidden sm:block" />
           </MenuButton>
@@ -114,11 +117,11 @@
             leave-from-class="transform scale-100 opacity-100"
             leave-to-class="transform scale-95 opacity-0"
           >
-            <MenuItems class="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-xl shadow-lg ring-1 ring-black/5 focus:outline-none py-1">
+            <MenuItems class="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-xl shadow-lg ring-1 ring-black/5 focus:outline-none py-1 dark:bg-gray-800 dark:ring-gray-700">
               <!-- User info -->
-              <div class="px-4 py-3 border-b border-gray-100">
-                <p class="text-sm font-medium text-gray-900">{{ userStore.fullName }}</p>
-                <p class="text-xs text-gray-500">{{ userStore.user?.email }}</p>
+              <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ userStore.fullName }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ userStore.user?.email }}</p>
               </div>
               
               <div class="py-1">
@@ -126,8 +129,8 @@
                   <RouterLink 
                     to="/profile"
                     :class="[
-                      active ? 'bg-gray-50' : '',
-                      'flex items-center gap-3 px-4 py-2 text-sm text-gray-700'
+                      active ? 'bg-gray-50 dark:bg-gray-700' : '',
+                      'flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200'
                     ]"
                   >
                     <UserCircleIcon class="w-5 h-5 text-gray-400" />
@@ -139,8 +142,8 @@
                   <RouterLink 
                     to="/dashboard"
                     :class="[
-                      active ? 'bg-gray-50' : '',
-                      'flex items-center gap-3 px-4 py-2 text-sm text-gray-700'
+                      active ? 'bg-gray-50 dark:bg-gray-700' : '',
+                      'flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200'
                     ]"
                   >
                     <Cog6ToothIcon class="w-5 h-5 text-gray-400" />
@@ -149,12 +152,12 @@
                 </MenuItem>
               </div>
               
-              <div class="py-1 border-t border-gray-100">
+              <div class="py-1 border-t border-gray-100 dark:border-gray-700">
                 <MenuItem v-slot="{ active }">
                   <button 
                     @click="handleLogout"
                     :class="[
-                      active ? 'bg-gray-50' : '',
+                      active ? 'bg-gray-50 dark:bg-gray-700' : '',
                       'flex items-center gap-3 w-full px-4 py-2 text-sm text-danger-600'
                     ]"
                   >
@@ -187,6 +190,7 @@ import {
   CheckCircleIcon
 } from '@heroicons/vue/24/outline'
 import { useUserStore } from '@/stores'
+import { ThemeToggle } from '@/components/common'
 
 defineEmits(['toggle-sidebar'])
 

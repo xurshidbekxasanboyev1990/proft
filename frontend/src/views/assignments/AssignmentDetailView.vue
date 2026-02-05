@@ -5,7 +5,7 @@
     <template v-else-if="assignment">
       <!-- Page header -->
       <div class="mb-6">
-        <RouterLink to="/assignments" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-2">
+        <RouterLink :to="backPath" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-2">
           <ArrowLeftIcon class="w-4 h-4 mr-1" />
           Orqaga
         </RouterLink>
@@ -21,7 +21,7 @@
           </div>
 
           <div v-if="userStore.isAdminOrSuperAdmin" class="flex items-center gap-2">
-            <RouterLink :to="`/assignments/${assignment.id}/edit`" class="btn-secondary">
+            <RouterLink :to="editPath" class="btn-secondary">
               <PencilIcon class="w-4 h-4 mr-2" />
               Tahrirlash
             </RouterLink>
@@ -183,7 +183,7 @@
       title="Topshiriq topilmadi"
       description="Bu topshiriq mavjud emas yoki o'chirilgan"
       action-text="Ortga qaytish"
-      @action="$router.push('/assignments')"
+      @action="$router.push(backPath)"
     />
 
     <!-- Delete modal -->
@@ -240,6 +240,18 @@ const route = useRoute()
 const router = useRouter()
 const assignmentStore = useAssignmentStore()
 const userStore = useUserStore()
+
+// Determine base path based on current route
+const basePath = computed(() => {
+  const path = route.path
+  if (path.startsWith('/teacher')) return '/teacher/tasks'
+  if (path.startsWith('/admin-panel')) return '/admin-panel/tasks'
+  if (path.startsWith('/super-admin')) return '/super-admin/tasks'
+  return '/teacher/tasks'
+})
+
+const backPath = computed(() => basePath.value)
+const editPath = computed(() => `${basePath.value}/${route.params.id}/edit`)
 
 const isLoading = ref(true)
 const showDeleteModal = ref(false)
@@ -317,7 +329,7 @@ async function handleDelete() {
   isDeleting.value = true
   try {
     await assignmentStore.deleteAssignment(assignment.value.id)
-    router.push('/assignments')
+    router.push(basePath.value)
   } catch (error) {
     console.error('Delete failed:', error)
   } finally {

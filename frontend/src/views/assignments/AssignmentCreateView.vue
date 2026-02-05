@@ -126,15 +126,25 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import { LoadingSpinner } from '@/components/common'
 import { useAssignmentStore, useUserStore } from '@/stores'
 import { ASSIGNMENT_PRIORITIES, userService } from '@/services'
 
 const router = useRouter()
+const route = useRoute()
 const assignmentStore = useAssignmentStore()
 const userStore = useUserStore()
+
+// Determine base path based on current route
+const basePath = computed(() => {
+  const path = route.path
+  if (path.startsWith('/teacher')) return '/teacher/tasks'
+  if (path.startsWith('/admin-panel')) return '/admin-panel/tasks'
+  if (path.startsWith('/super-admin')) return '/super-admin/tasks'
+  return '/admin-panel/tasks'
+})
 
 const categories = computed(() => assignmentStore.categories)
 const teachers = ref([])
@@ -214,7 +224,7 @@ async function handleSubmit() {
     }
 
     const result = await assignmentStore.createAssignment(data)
-    router.push(`/assignments/${result.id}`)
+    router.push(`${basePath.value}/${result.id}`)
   } catch (error) {
     console.error('Failed to create assignment:', error)
   } finally {

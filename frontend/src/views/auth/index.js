@@ -1,2 +1,6 @@
 export { default as LoginView } from './LoginView.vue'
+export { default as HemisLoginView } from './HemisLoginView.vue'
 export { default as CallbackView } from './CallbackView.vue'
+export { default as HemisCallbackView } from './HemisCallbackView.vue'
+export { default as LogoutView } from './LogoutView.vue'
+export { default as AuthStatusView } from './AuthStatusView.vue'

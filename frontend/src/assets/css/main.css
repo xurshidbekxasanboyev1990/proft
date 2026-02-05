@@ -9,7 +9,13 @@
   }
   
   body {
-    @apply font-sans text-gray-900 antialiased;
+    @apply font-sans text-gray-900 antialiased bg-gray-50;
+  }
+  
+  /* Dark mode base */
+  .dark body,
+  .dark {
+    @apply bg-gray-900 text-gray-100;
   }
 }
 
@@ -25,7 +31,7 @@
   }
   
   .btn-secondary {
-    @apply btn bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500;
+    @apply btn bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
   }
   
   .btn-success {
@@ -41,7 +47,11 @@
   }
   
   .btn-outline {
-    @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-primary-500;
+    @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700;
+  }
+  
+  .btn-ghost {
+    @apply btn bg-transparent text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800;
   }
   
   .btn-sm {
@@ -54,24 +64,28 @@
   
   /* Form inputs */
   .form-input {
-    @apply w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200;
+    @apply w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-500;
   }
   
   .form-label {
-    @apply block text-sm font-medium text-gray-700 mb-1.5;
+    @apply block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300;
   }
   
   .form-error {
     @apply text-sm text-danger-500 mt-1;
   }
   
+  .form-checkbox {
+    @apply w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700;
+  }
+  
   /* Cards */
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden;
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden dark:bg-gray-800 dark:border-gray-700;
   }
   
   .card-header {
-    @apply px-6 py-4 border-b border-gray-200 bg-gray-50;
+    @apply px-6 py-4 border-b border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700;
   }
   
   .card-body {
@@ -79,7 +93,7 @@
   }
   
   .card-footer {
-    @apply px-6 py-4 border-t border-gray-200 bg-gray-50;
+    @apply px-6 py-4 border-t border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700;
   }
   
   /* Status badges */
@@ -88,58 +102,58 @@
   }
   
   .badge-pending {
-    @apply badge bg-warning-50 text-warning-600;
+    @apply badge bg-warning-50 text-warning-600 dark:bg-warning-500/20 dark:text-warning-500;
   }
   
   .badge-approved {
-    @apply badge bg-success-50 text-success-600;
+    @apply badge bg-success-50 text-success-600 dark:bg-success-500/20 dark:text-success-500;
   }
   
   .badge-rejected {
-    @apply badge bg-danger-50 text-danger-600;
+    @apply badge bg-danger-50 text-danger-600 dark:bg-danger-500/20 dark:text-danger-500;
   }
   
   /* Role badges */
   .badge-superadmin {
-    @apply badge bg-purple-100 text-purple-700;
+    @apply badge bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400;
   }
   
   .badge-admin {
-    @apply badge bg-blue-100 text-blue-700;
+    @apply badge bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400;
   }
   
   .badge-teacher {
-    @apply badge bg-green-100 text-green-700;
+    @apply badge bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400;
   }
   
   /* Tables */
   .table-container {
-    @apply overflow-x-auto rounded-lg border border-gray-200;
+    @apply overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700;
   }
   
   .table {
-    @apply min-w-full divide-y divide-gray-200;
+    @apply min-w-full divide-y divide-gray-200 dark:divide-gray-700;
   }
   
   .table th {
-    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50;
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 dark:bg-gray-800 dark:text-gray-400;
   }
   
   .table td {
-    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100;
   }
   
   .table tbody tr {
-    @apply hover:bg-gray-50 transition-colors;
+    @apply hover:bg-gray-50 transition-colors dark:hover:bg-gray-800;
   }
   
   /* Sidebar */
   .sidebar-link {
-    @apply flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors;
+    @apply flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white;
   }
   
   .sidebar-link.active {
-    @apply bg-primary-50 text-primary-700;
+    @apply bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-400;
   }
   
   .sidebar-link svg {
@@ -209,6 +223,43 @@
   @apply bg-gray-100 rounded-full;
 }
 
+.dark ::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
 ::-webkit-scrollbar-thumb {
   @apply bg-gray-300 rounded-full hover:bg-gray-400;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 hover:bg-gray-500;
+}
+
+/* Dark mode specific overrides */
+.dark .text-gray-900 {
+  @apply text-gray-100;
+}
+
+.dark .text-gray-700 {
+  @apply text-gray-300;
+}
+
+.dark .text-gray-500 {
+  @apply text-gray-400;
+}
+
+.dark .bg-gray-50 {
+  @apply bg-gray-900;
+}
+
+.dark .bg-white {
+  @apply bg-gray-800;
+}
+
+.dark .border-gray-200 {
+  @apply border-gray-700;
+}
+
+.dark .border-gray-100 {
+  @apply border-gray-800;
 }

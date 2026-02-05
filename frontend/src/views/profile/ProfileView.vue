@@ -1,11 +1,17 @@
 <template>
   <div class="animate-fade-in">
     <!-- Page header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Profil</h1>
-      <p class="mt-1 text-sm text-gray-500">
-        Shaxsiy ma'lumotlaringizni ko'ring va tahrirlang
-      </p>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Profil</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Shaxsiy ma'lumotlaringizni ko'ring va tahrirlang
+        </p>
+      </div>
+      <RouterLink to="/profile/edit" class="btn-primary">
+        <PencilSquareIcon class="w-5 h-5 mr-2" />
+        Tahrirlash
+      </RouterLink>
     </div>
     
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -130,6 +136,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { PencilSquareIcon } from '@heroicons/vue/24/outline'
 import { LoadingSpinner, StatusBadge } from '@/components/common'
 import { useUserStore } from '@/stores'
 

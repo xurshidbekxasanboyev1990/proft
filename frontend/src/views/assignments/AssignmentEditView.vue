@@ -185,6 +185,15 @@ const route = useRoute()
 const router = useRouter()
 const assignmentStore = useAssignmentStore()
 
+// Determine base path based on current route
+const basePath = computed(() => {
+  const path = route.path
+  if (path.startsWith('/teacher')) return '/teacher/tasks'
+  if (path.startsWith('/admin-panel')) return '/admin-panel/tasks'
+  if (path.startsWith('/super-admin')) return '/super-admin/tasks'
+  return '/admin-panel/tasks'
+})
+
 const isLoading = ref(true)
 const isSubmitting = ref(false)
 const showScoreModal = ref(false)
@@ -292,7 +301,7 @@ async function handleSubmit() {
     }
 
     await assignmentStore.updateAssignment(route.params.id, data)
-    router.push(`/assignments/${route.params.id}`)
+    router.push(`${basePath.value}/${route.params.id}`)
   } catch (error) {
     console.error('Failed to update assignment:', error)
   } finally {

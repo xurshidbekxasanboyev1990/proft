@@ -78,7 +78,7 @@
                 </div>
 
                 <RouterLink 
-                  :to="`/assignments/${submission.assignment?.id}`"
+                  :to="`${basePath}/${submission.assignment?.id}`"
                   class="text-primary-600 hover:text-primary-700 font-medium"
                 >
                   {{ submission.assignment?.title }}
@@ -155,13 +155,24 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { PaperClipIcon } from '@heroicons/vue/24/outline'
 import { StatsCard, SearchInput, SkeletonLoader, EmptyState, Pagination, LoadingSpinner } from '@/components/common'
 import { useAssignmentStore } from '@/stores'
 import { assignmentService } from '@/services'
 import dayjs from 'dayjs'
 
+const route = useRoute()
 const assignmentStore = useAssignmentStore()
+
+// Dynamic base path based on current route
+const basePath = computed(() => {
+  const path = route.path
+  if (path.startsWith('/teacher')) return '/teacher/tasks'
+  if (path.startsWith('/admin-panel')) return '/admin-panel/tasks'
+  if (path.startsWith('/super-admin')) return '/super-admin/tasks'
+  return '/admin-panel/tasks'
+})
 
 const isLoading = ref(true)
 const isGrading = ref(null)

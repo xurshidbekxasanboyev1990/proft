@@ -293,7 +293,7 @@
 
             <div v-if="selectedNotification.action_url" class="mt-6">
               <router-link
-                :to="selectedNotification.action_url"
+                :to="transformActionUrl(selectedNotification.action_url)"
                 class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               >
                 {{ selectedNotification.action_text || 'Ko\'rish' }}
@@ -376,6 +376,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   BellIcon,
   BellAlertIcon,
@@ -400,7 +401,25 @@ import {
 import { formatDate } from '@/utils/date'
 import { useToast } from 'vue-toastification'
 
+const route = useRoute()
 const toast = useToast()
+
+// Transform action_url based on current route context
+function transformActionUrl(url) {
+  if (!url) return url
+  
+  // Handle /assignments/X paths
+  if (url.startsWith('/assignments/')) {
+    const id = url.replace('/assignments/', '')
+    const path = route.path
+    if (path.startsWith('/teacher')) return `/teacher/tasks/${id}`
+    if (path.startsWith('/admin-panel')) return `/admin-panel/tasks/${id}`
+    if (path.startsWith('/super-admin')) return `/super-admin/tasks/${id}`
+    return `/teacher/tasks/${id}`
+  }
+  
+  return url
+}
 
 const searchQuery = ref('')
 const activeFilter = ref('all')

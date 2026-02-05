@@ -1,14 +1,14 @@
 <template>
   <div class="flex flex-col h-full">
     <!-- Logo (mobile) -->
-    <div class="flex items-center justify-between h-16 lg:hidden border-b border-gray-200 px-4 -mx-6">
+    <div class="flex items-center justify-between h-16 lg:hidden border-b border-gray-200 px-4 -mx-6 dark:border-gray-700">
       <RouterLink to="/dashboard" class="flex items-center gap-2">
         <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
           <span class="text-white font-bold text-lg">P</span>
         </div>
-        <span class="text-xl font-bold text-gray-900">Proft</span>
+        <span class="text-xl font-bold text-gray-900 dark:text-white">Proft</span>
       </RouterLink>
-      <button @click="$emit('close')" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100">
+      <button @click="$emit('close')" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
         <XMarkIcon class="w-6 h-6" />
       </button>
     </div>
@@ -17,7 +17,7 @@
     <nav class="flex-1 pt-6 space-y-1">
       <!-- Main Navigation -->
       <div class="space-y-1">
-        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 dark:text-gray-500">
           Asosiy
         </p>
         
@@ -38,7 +38,7 @@
       
       <!-- Teacher Navigation -->
       <div v-if="userStore.isTeacher || userStore.isSuperAdmin" class="pt-6 space-y-1">
-        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 dark:text-gray-500">
           Portfolio
         </p>
         
@@ -59,7 +59,7 @@
       
       <!-- Admin Navigation -->
       <div v-if="userStore.isAdminOrSuperAdmin" class="pt-6 space-y-1">
-        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 dark:text-gray-500">
           Tasdiqlash
         </p>
         
@@ -86,7 +86,7 @@
       
       <!-- Super Admin Navigation -->
       <div v-if="userStore.isSuperAdmin" class="pt-6 space-y-1">
-        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 dark:text-gray-500">
           Boshqaruv
         </p>
         
@@ -107,8 +107,8 @@
     </nav>
     
     <!-- Footer -->
-    <div class="border-t border-gray-200 pt-4 pb-2">
-      <div class="px-4 py-2 text-xs text-gray-400">
+    <div class="border-t border-gray-200 pt-4 pb-2 dark:border-gray-700">
+      <div class="px-4 py-2 text-xs text-gray-400 dark:text-gray-500">
         &copy; 2026 Proft v1.0
       </div>
     </div>

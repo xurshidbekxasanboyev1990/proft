@@ -206,17 +206,22 @@ export const analyticsService = {
 
   /**
    * Hisobotlar ro'yxati
-   * @returns {Promise<Array>} Hisobotlar
+   * @param {Object} params - limit, offset
+   * @returns {Promise<Object>} Hisobotlar
    */
-  async getReports() {
+  async getReports(params = {}) {
     // DEV_MODE da mock data qaytarish
     if (DEV_MODE) {
-      return [
-        { id: 1, title: 'Oylik hisobot - Yanvar 2026', type: 'monthly', format: 'excel', status: 'completed', created_at: new Date().toISOString() },
-        { id: 2, title: 'Portfolio statistikasi', type: 'portfolios', format: 'pdf', status: 'completed', created_at: new Date().toISOString() }
-      ]
+      return {
+        results: [
+          { id: 1, title: 'Oylik hisobot - Yanvar 2026', report_type: 'monthly', format: 'excel', status: 'completed', created_at: new Date().toISOString() },
+          { id: 2, title: 'Portfolio statistikasi', report_type: 'portfolios', format: 'pdf', status: 'completed', created_at: new Date().toISOString() },
+          { id: 3, title: "O'qituvchilar reytingi", report_type: 'teachers', format: 'excel', status: 'completed', created_at: new Date(Date.now() - 86400000).toISOString() }
+        ],
+        count: 3
+      }
     }
-    const response = await api.get('/api/analytics/reports/')
+    const response = await api.get('/api/analytics/reports/', { params })
     return response.data
   },
 
@@ -244,6 +249,19 @@ export const analyticsService = {
    * @returns {Promise<Object>} Yaratilgan hisobot
    */
   async createReport(data) {
+    // DEV_MODE da mock data qaytarish
+    if (DEV_MODE) {
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      return {
+        id: Date.now(),
+        title: data.title || 'Yangi hisobot',
+        report_type: data.type,
+        format: data.format,
+        status: 'completed',
+        created_at: new Date().toISOString(),
+        download_url: '#'
+      }
+    }
     const response = await api.post('/api/analytics/reports/', data)
     return response.data
   },
@@ -254,6 +272,10 @@ export const analyticsService = {
    * @returns {Promise<Object>} O'chirish natijasi
    */
   async deleteReport(reportId) {
+    // DEV_MODE da mock data qaytarish
+    if (DEV_MODE) {
+      return { success: true }
+    }
     const response = await api.delete(`/api/analytics/reports/${reportId}/`)
     return response.data
   },
@@ -261,9 +283,13 @@ export const analyticsService = {
   /**
    * Hisobotni yuklab olish
    * @param {string} reportId - Hisobot ID
-   * @returns {Promise<Blob>} Fayl
+   * @returns {Promise<Object>} Download URL
    */
   async downloadReport(reportId) {
+    // DEV_MODE da mock data qaytarish
+    if (DEV_MODE) {
+      return { url: '#' }
+    }
     const response = await api.get(`/api/analytics/reports/${reportId}/download/`, {
       responseType: 'blob'
     })
@@ -281,11 +307,29 @@ export const analyticsService = {
    * @param {string} data.format - excel|pdf|csv|json
    * @param {string} data.date_from - Boshlanish sanasi
    * @param {string} data.date_to - Tugash sanasi
-   * @returns {Promise<Blob>} Fayl
+   * @returns {Promise<Blob|Object>} Fayl yoki JSON data
    */
   async quickExport(data) {
+    // DEV_MODE da mock data qaytarish
+    if (DEV_MODE) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      // JSON format uchun mock data
+      if (data.format === 'json') {
+        return {
+          type: data.type,
+          generated_at: new Date().toISOString(),
+          data: {
+            total_users: 156,
+            total_portfolios: 450,
+            total_assignments: 89
+          }
+        }
+      }
+      // Blob qaytarish
+      return new Blob(['Mock export data'], { type: 'application/octet-stream' })
+    }
     const response = await api.post('/api/analytics/export/', data, {
-      responseType: 'blob'
+      responseType: data.format === 'json' ? 'json' : 'blob'
     })
     return response.data
   },

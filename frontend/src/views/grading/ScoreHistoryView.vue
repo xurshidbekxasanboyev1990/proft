@@ -95,7 +95,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <RouterLink 
-                    :to="`/assignments/${item.assignment?.id}`"
+                    :to="`${basePath}/${item.assignment?.id}`"
                     class="text-sm font-medium text-primary-600 hover:text-primary-700"
                   >
                     {{ item.assignment?.title || '-' }}
@@ -158,12 +158,24 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import { SearchInput, SkeletonLoader, EmptyState, Pagination } from '@/components/common'
 import { ScoreHistoryDetailModal } from '@/components/grading'
 import { assignmentService } from '@/services'
 import dayjs from 'dayjs'
+
+const route = useRoute()
+
+// Dynamic base path based on current route
+const basePath = computed(() => {
+  const path = route.path
+  if (path.startsWith('/teacher')) return '/teacher/tasks'
+  if (path.startsWith('/admin-panel')) return '/admin-panel/tasks'
+  if (path.startsWith('/super-admin')) return '/super-admin/tasks'
+  return '/admin-panel/tasks'
+})
 
 const isLoading = ref(true)
 const isExporting = ref(false)

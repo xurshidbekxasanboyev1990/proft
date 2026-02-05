@@ -32,7 +32,7 @@
             </div>
             <RouterLink 
               v-if="item.assignment?.id"
-              :to="`/assignments/${item.assignment.id}`"
+              :to="`${basePath}/${item.assignment.id}`"
               class="text-primary-600 hover:text-primary-700 text-sm font-medium"
             >
               Ko'rish →
@@ -157,6 +157,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { 
   ArrowRightIcon,
   ArrowUpIcon,
@@ -170,6 +171,17 @@ import {
 } from '@heroicons/vue/24/outline'
 import { BaseModal } from '@/components/common'
 import dayjs from 'dayjs'
+
+const route = useRoute()
+
+// Dynamic base path based on current route
+const basePath = computed(() => {
+  const path = route.path
+  if (path.startsWith('/teacher')) return '/teacher/tasks'
+  if (path.startsWith('/admin-panel')) return '/admin-panel/tasks'
+  if (path.startsWith('/super-admin')) return '/super-admin/tasks'
+  return '/admin-panel/tasks'
+})
 
 const props = defineProps({
   isOpen: {

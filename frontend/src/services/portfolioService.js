@@ -76,7 +76,17 @@ export const portfolioService = {
   async getPortfolios(params = {}) {
     // DEV_MODE da mock data qaytarish
     if (DEV_MODE) {
-      return { results: MOCK_PORTFOLIOS, count: MOCK_PORTFOLIOS.length }
+      return { 
+        portfolios: MOCK_PORTFOLIOS, 
+        pagination: {
+          page: 1,
+          page_size: 20,
+          total_pages: 1,
+          total_count: MOCK_PORTFOLIOS.length,
+          has_next: false,
+          has_previous: false
+        }
+      }
     }
     const response = await api.get('/api/portfolios/', { params })
     return response.data
