@@ -9,7 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Assignment, AssignmentSubmission
+from .models import Assignment, AssignmentProgress
 
 
 @receiver(post_save, sender=Assignment)
@@ -19,21 +19,21 @@ def assignment_created_notification(sender, instance, created, **kwargs):
     """
     if created:
         # Send email notification to assigned teacher
-        if instance.assigned_to and instance.assigned_to.email:
+        if instance.teacher and instance.teacher.email:
             try:
                 send_mail(
                     subject=f'Yangi topshiriq: {instance.title}',
                     message=f'''
-Hurmatli {instance.assigned_to.get_full_name() or instance.assigned_to.username},
+Hurmatli {instance.teacher.get_full_name() or instance.teacher.username},
 
 Sizga yangi topshiriq berildi:
 
 Sarlavha: {instance.title}
 Kategoriya: {instance.category.name}
-Muddat: {instance.deadline.strftime("%Y-%m-%d %H:%M")}
+Muddat: {instance.deadline.strftime("%Y-%m-%d %H:%M") if instance.deadline else "Belgilanmagan"}
 
 Tavsif:
-{instance.description}
+{instance.description or "Tavsif yo'q"}
 
 Topshiriqni bajarish uchun tizimga kiring.
 
@@ -41,7 +41,7 @@ Hurmat bilan,
 Portfolio Tizimi
                     '''.strip(),
                     from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[instance.assigned_to.email],
+                    recipient_list=[instance.teacher.email],
                     fail_silently=True,
                 )
             except Exception as e:
@@ -77,7 +77,7 @@ def assignment_status_changed_notification(sender, instance, created, **kwargs):
         old_status = getattr(instance, '_old_status', None)
         
         # Notify teacher about status change
-        if instance.assigned_to and instance.assigned_to.email:
+        if instance.teacher and instance.teacher.email:
             status_labels = dict(Assignment.STATUS_CHOICES)
             old_label = status_labels.get(old_status, old_status)
             new_label = status_labels.get(instance.status, instance.status)
@@ -86,7 +86,7 @@ def assignment_status_changed_notification(sender, instance, created, **kwargs):
                 send_mail(
                     subject=f'Topshiriq holati o\'zgardi: {instance.title}',
                     message=f'''
-Hurmatli {instance.assigned_to.get_full_name() or instance.assigned_to.username},
+Hurmatli {instance.teacher.get_full_name() or instance.teacher.username},
 
 "{instance.title}" topshirig'ingiz holati o'zgardi:
 
@@ -99,35 +99,35 @@ Hurmat bilan,
 Portfolio Tizimi
                     '''.strip(),
                     from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[instance.assigned_to.email],
+                    recipient_list=[instance.teacher.email],
                     fail_silently=True,
                 )
             except Exception as e:
                 print(f"Email yuborishda xatolik: {e}")
 
 
-@receiver(post_save, sender=AssignmentSubmission)
-def submission_notification(sender, instance, created, **kwargs):
+@receiver(post_save, sender=AssignmentProgress)
+def progress_notification(sender, instance, created, **kwargs):
     """
-    Send notification when a submission is made.
+    Send notification when a progress is recorded.
     """
     if created:
         assignment = instance.assignment
         
-        # Notify admin/creator about new submission
+        # Notify admin/creator about new progress
         if assignment.created_by and assignment.created_by.email:
             try:
                 send_mail(
-                    subject=f'Yangi javob: {assignment.title}',
+                    subject=f'Yangi progress: {assignment.title}',
                     message=f'''
 Hurmatli {assignment.created_by.get_full_name() or assignment.created_by.username},
 
-"{assignment.title}" topshirig'iga yangi javob keldi:
+"{assignment.title}" topshirig'iga yangi progress qo'shildi:
 
-O'qituvchi: {assignment.assigned_to.get_full_name() or assignment.assigned_to.username}
-Yuborilgan vaqt: {instance.submitted_at.strftime("%Y-%m-%d %H:%M")}
+O'qituvchi: {assignment.teacher.get_full_name() or assignment.teacher.username}
+Vaqt: {instance.created_at.strftime("%Y-%m-%d %H:%M")}
 
-Tizimga kirib, javobni tekshirishingiz mumkin.
+Tizimga kirib, progressni tekshirishingiz mumkin.
 
 Hurmat bilan,
 Portfolio Tizimi
@@ -140,47 +140,48 @@ Portfolio Tizimi
                 print(f"Email yuborishda xatolik: {e}")
 
 
-@receiver(pre_save, sender=AssignmentSubmission)
-def check_submission_grade_change(sender, instance, **kwargs):
+@receiver(pre_save, sender=AssignmentProgress)
+def check_progress_grade_change(sender, instance, **kwargs):
     """
-    Track submission grade changes.
+    Track progress grade changes.
     """
     if instance.pk:
         try:
-            old_instance = AssignmentSubmission.objects.get(pk=instance.pk)
-            if old_instance.grade != instance.grade and instance.grade is not None:
+            old_instance = AssignmentProgress.objects.get(pk=instance.pk)
+            if old_instance.raw_score != instance.raw_score and instance.raw_score is not None:
                 instance._grade_changed = True
-                instance._old_grade = old_instance.grade
+                instance._old_grade = old_instance.raw_score
             else:
                 instance._grade_changed = False
-        except AssignmentSubmission.DoesNotExist:
+        except AssignmentProgress.DoesNotExist:
             instance._grade_changed = False
     else:
         instance._grade_changed = False
 
 
-@receiver(post_save, sender=AssignmentSubmission)
-def submission_graded_notification(sender, instance, created, **kwargs):
+@receiver(post_save, sender=AssignmentProgress)
+def progress_graded_notification(sender, instance, created, **kwargs):
     """
-    Send notification when submission is graded.
+    Send notification when progress is graded.
     """
     if not created and getattr(instance, '_grade_changed', False):
         assignment = instance.assignment
         
         # Notify teacher about grading
-        if assignment.assigned_to and assignment.assigned_to.email:
+        if assignment.teacher and assignment.teacher.email:
             try:
                 send_mail(
                     subject=f'Topshiriq baholandi: {assignment.title}',
                     message=f'''
-Hurmatli {assignment.assigned_to.get_full_name() or assignment.assigned_to.username},
+Hurmatli {assignment.teacher.get_full_name() or assignment.teacher.username},
 
 "{assignment.title}" topshirig'ingiz baholandi:
 
-Baho: {instance.grade}/100
+Xom ball: {instance.raw_score}
+Yakuniy ball: {instance.final_score}
 
 Izoh:
-{instance.feedback or "Izoh yo'q"}
+{instance.grade_note or "Izoh yo'q"}
 
 Tizimga kirib, batafsil ma'lumot olishingiz mumkin.
 
@@ -188,7 +189,7 @@ Hurmat bilan,
 Portfolio Tizimi
                     '''.strip(),
                     from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[assignment.assigned_to.email],
+                    recipient_list=[assignment.teacher.email],
                     fail_silently=True,
                 )
             except Exception as e:

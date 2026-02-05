@@ -13,7 +13,7 @@ app_name = 'assignments'
 router = DefaultRouter()
 router.register(r'v2/categories', api_views.CategoryViewSet, basename='category')
 router.register(r'v2/assignments', api_views.AssignmentViewSet, basename='assignment')
-router.register(r'v2/submissions', api_views.AssignmentSubmissionViewSet, basename='submission')
+router.register(r'v2/progress', api_views.AssignmentProgressViewSet, basename='progress')
 
 urlpatterns = [
     # DRF API v2 (REST Framework ViewSets)

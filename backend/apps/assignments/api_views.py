@@ -11,14 +11,14 @@ from django.utils import timezone
 from django.db.models import Count, Avg, Q
 
 from apps.accounts.permissions import IsAdminOrSuperAdmin, IsOwnerOrAdmin
-from .models import Category, Assignment, AssignmentSubmission
+from .models import Category, Assignment, AssignmentProgress
 from .serializers import (
     CategorySerializer, CategoryListSerializer,
     AssignmentListSerializer, AssignmentDetailSerializer,
     AssignmentCreateSerializer, AssignmentUpdateSerializer,
     AssignmentStatusUpdateSerializer, AssignmentStatisticsSerializer,
-    AssignmentSubmissionSerializer, AssignmentSubmissionCreateSerializer,
-    AssignmentSubmissionGradeSerializer
+    AssignmentProgressSerializer, AssignmentProgressCreateSerializer,
+    AssignmentProgressGradeSerializer
 )
 
 
@@ -77,7 +77,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         
         # Filter by teacher's own assignments if not admin
         if not (request.user.is_superadmin or request.user.is_admin):
-            assignments = assignments.filter(assigned_to=request.user)
+            assignments = assignments.filter(teacher=request.user)
         
         serializer = AssignmentListSerializer(assignments, many=True)
         return Response(serializer.data)
@@ -98,19 +98,19 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     queryset = Assignment.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'status', 'priority', 'assigned_to']
+    filterset_fields = ['category', 'status', 'priority', 'teacher']
     search_fields = ['title', 'description']
     ordering_fields = ['deadline', 'created_at', 'priority']
     ordering = ['-created_at']
     
     def get_queryset(self):
         queryset = Assignment.objects.select_related(
-            'category', 'assigned_to', 'created_by'
-        ).prefetch_related('submissions')
+            'category', 'teacher', 'created_by'
+        ).prefetch_related('progress_items')
         
         # Teachers can only see their own assignments
         if self.request.user.role == 'teacher':
-            queryset = queryset.filter(assigned_to=self.request.user)
+            queryset = queryset.filter(teacher=self.request.user)
         
         # Filter by status
         status_filter = self.request.query_params.get('status')
@@ -203,13 +203,13 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         else:
             stats['completion_rate'] = 0
         
-        # Average grade
-        submissions = AssignmentSubmission.objects.filter(
+        # Average score
+        progress_items = AssignmentProgress.objects.filter(
             assignment__in=queryset,
-            grade__isnull=False
+            raw_score__isnull=False
         )
-        avg_grade = submissions.aggregate(avg=Avg('grade'))['avg']
-        stats['average_grade'] = round(avg_grade, 2) if avg_grade else None
+        avg_score = progress_items.aggregate(avg=Avg('raw_score'))['avg']
+        stats['average_grade'] = round(avg_score, 2) if avg_score else None
         
         # By category
         by_category = queryset.values(
@@ -223,7 +223,7 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     def my_assignments(self, request):
         """Get current user's assignments."""
         queryset = Assignment.objects.filter(
-            assigned_to=request.user
+            teacher=request.user
         ).select_related('category', 'created_by')
         
         serializer = AssignmentListSerializer(queryset, many=True)
@@ -231,11 +231,11 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
-        """Submit a response to an assignment."""
+        """Submit a progress to an assignment."""
         assignment = self.get_object()
         
         # Check if user is assigned to this task
-        if assignment.assigned_to != request.user:
+        if assignment.teacher != request.user:
             return Response(
                 {'error': 'Siz bu topshiriqqa javob bera olmaysiz'},
                 status=status.HTTP_403_FORBIDDEN
@@ -248,12 +248,11 @@ class AssignmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        serializer = AssignmentSubmissionCreateSerializer(data=request.data)
+        serializer = AssignmentProgressCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        submission = AssignmentSubmission.objects.create(
+        progress = AssignmentProgress.objects.create(
             assignment=assignment,
-            submitted_by=request.user,
             **serializer.validated_data
         )
         
@@ -262,32 +261,32 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         assignment.save()
         
         return Response(
-            AssignmentSubmissionSerializer(submission).data,
+            AssignmentProgressSerializer(progress).data,
             status=status.HTTP_201_CREATED
         )
 
 
-class AssignmentSubmissionViewSet(viewsets.ModelViewSet):
+class AssignmentProgressViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for AssignmentSubmission CRUD operations.
+    ViewSet for AssignmentProgress CRUD operations.
     """
     
-    queryset = AssignmentSubmission.objects.all()
-    serializer_class = AssignmentSubmissionSerializer
+    queryset = AssignmentProgress.objects.all()
+    serializer_class = AssignmentProgressSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['assignment', 'submitted_by']
-    ordering_fields = ['submitted_at', 'grade']
-    ordering = ['-submitted_at']
+    filterset_fields = ['assignment', 'counted']
+    ordering_fields = ['created_at', 'raw_score']
+    ordering = ['-created_at']
     
     def get_queryset(self):
-        queryset = AssignmentSubmission.objects.select_related(
-            'assignment', 'submitted_by', 'graded_by'
+        queryset = AssignmentProgress.objects.select_related(
+            'assignment', 'portfolio', 'graded_by'
         )
         
-        # Teachers can only see their own submissions
+        # Teachers can only see progress for their own assignments
         if self.request.user.role == 'teacher':
-            queryset = queryset.filter(submitted_by=self.request.user)
+            queryset = queryset.filter(assignment__teacher=self.request.user)
         
         return queryset
     
@@ -298,13 +297,10 @@ class AssignmentSubmissionViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated(), IsAdminOrSuperAdmin()]
         return [IsAuthenticated()]
     
-    def perform_create(self, serializer):
-        serializer.save(submitted_by=self.request.user)
-    
     @action(detail=True, methods=['patch'])
     def grade(self, request, pk=None):
-        """Grade a submission (Admin/SuperAdmin only)."""
-        submission = self.get_object()
+        """Grade a progress (Admin/SuperAdmin only)."""
+        progress = self.get_object()
         
         # Check permission
         if not (request.user.is_superadmin or request.user.is_admin):
@@ -313,27 +309,22 @@ class AssignmentSubmissionViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        serializer = AssignmentSubmissionGradeSerializer(
-            submission,
+        serializer = AssignmentProgressGradeSerializer(
+            progress,
             data=request.data,
             partial=True
         )
         serializer.is_valid(raise_exception=True)
         
-        submission.grade = serializer.validated_data.get('grade')
-        submission.feedback = serializer.validated_data.get('feedback', '')
-        submission.graded_by = request.user
-        submission.graded_at = timezone.now()
-        submission.save()
+        raw_score = serializer.validated_data.get('raw_score')
+        grade_note = serializer.validated_data.get('grade_note', '')
         
-        # If graded, mark assignment as completed
-        if submission.grade is not None:
-            assignment = submission.assignment
-            assignment.status = 'completed'
-            assignment.save()
+        # Use the model's set_score method
+        progress.set_score(raw_score, graded_by=request.user, note=grade_note)
         
         return Response({
             'message': 'Baholandi',
-            'grade': submission.grade,
-            'feedback': submission.feedback
+            'raw_score': progress.raw_score,
+            'final_score': progress.final_score,
+            'grade_note': progress.grade_note
         })

@@ -4,7 +4,7 @@ Serializers for assignments app.
 
 from rest_framework import serializers
 from django.utils import timezone
-from .models import Category, Assignment, AssignmentSubmission, AssignmentProgress, ScoreHistory
+from .models import Category, Assignment, AssignmentProgress, ScoreHistory
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -34,50 +34,46 @@ class CategoryListSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'icon', 'color', 'default_score', 'score_weight']
 
 
-class AssignmentSubmissionSerializer(serializers.ModelSerializer):
-    """Serializer for AssignmentSubmission model."""
+class AssignmentProgressSerializer(serializers.ModelSerializer):
+    """Serializer for AssignmentProgress model."""
     
-    submitted_by_name = serializers.CharField(
-        source='submitted_by.get_full_name', 
-        read_only=True
-    )
     graded_by_name = serializers.CharField(
         source='graded_by.get_full_name', 
         read_only=True
     )
     
     class Meta:
-        model = AssignmentSubmission
+        model = AssignmentProgress
         fields = [
-            'id', 'assignment', 'content', 'file',
-            'submitted_by', 'submitted_by_name', 'submitted_at',
-            'grade', 'feedback', 'graded_by', 'graded_by_name', 'graded_at'
+            'id', 'assignment', 'portfolio', 'note',
+            'counted', 'raw_score', 'final_score',
+            'graded_by', 'graded_by_name', 'graded_at', 'grade_note',
+            'created_at'
         ]
         read_only_fields = [
-            'submitted_by', 'submitted_at', 
-            'graded_by', 'graded_at'
+            'final_score', 'graded_by', 'graded_at', 'created_at'
         ]
 
 
-class AssignmentSubmissionCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating submissions."""
+class AssignmentProgressCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating progress."""
     
     class Meta:
-        model = AssignmentSubmission
-        fields = ['content', 'file']
+        model = AssignmentProgress
+        fields = ['portfolio', 'note']
 
 
-class AssignmentSubmissionGradeSerializer(serializers.ModelSerializer):
-    """Serializer for grading submissions."""
+class AssignmentProgressGradeSerializer(serializers.ModelSerializer):
+    """Serializer for grading progress."""
     
     class Meta:
-        model = AssignmentSubmission
-        fields = ['grade', 'feedback']
+        model = AssignmentProgress
+        fields = ['raw_score', 'grade_note']
     
-    def validate_grade(self, value):
-        if value is not None and (value < 0 or value > 100):
+    def validate_raw_score(self, value):
+        if value is not None and value < 0:
             raise serializers.ValidationError(
-                "Baho 0 dan 100 gacha bo'lishi kerak"
+                "Ball 0 dan kichik bo'lishi mumkin emas"
             )
         return value
 
@@ -86,8 +82,8 @@ class AssignmentListSerializer(serializers.ModelSerializer):
     """Serializer for assignment lists."""
     
     category_name = serializers.CharField(source='category.name', read_only=True)
-    assigned_to_name = serializers.CharField(
-        source='assigned_to.get_full_name', 
+    teacher_name = serializers.CharField(
+        source='teacher.get_full_name', 
         read_only=True
     )
     created_by_name = serializers.CharField(
@@ -107,7 +103,7 @@ class AssignmentListSerializer(serializers.ModelSerializer):
         model = Assignment
         fields = [
             'id', 'title', 'category', 'category_name',
-            'assigned_to', 'assigned_to_name',
+            'teacher', 'teacher_name',
             'created_by', 'created_by_name',
             'status', 'priority', 'deadline',
             'time_remaining', 'is_overdue', 'progress_percentage',
@@ -140,19 +136,19 @@ class AssignmentDetailSerializer(serializers.ModelSerializer):
         source='category',
         write_only=True
     )
-    assigned_to_name = serializers.CharField(
-        source='assigned_to.get_full_name', 
+    teacher_name = serializers.CharField(
+        source='teacher.get_full_name', 
         read_only=True
     )
-    assigned_to_email = serializers.EmailField(
-        source='assigned_to.email', 
+    teacher_email = serializers.EmailField(
+        source='teacher.email', 
         read_only=True
     )
     created_by_name = serializers.CharField(
         source='created_by.get_full_name', 
         read_only=True
     )
-    submissions = AssignmentSubmissionSerializer(many=True, read_only=True)
+    progress_items = AssignmentProgressSerializer(many=True, read_only=True)
     time_remaining = serializers.SerializerMethodField()
     is_overdue = serializers.SerializerMethodField()
     progress_percentage = serializers.SerializerMethodField()
@@ -169,7 +165,7 @@ class AssignmentDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 
             'category', 'category_id',
-            'assigned_to', 'assigned_to_name', 'assigned_to_email',
+            'teacher', 'teacher_name', 'teacher_email',
             'created_by', 'created_by_name',
             'status', 'priority', 'deadline',
             'time_remaining', 'is_overdue', 'progress_percentage', 'countdown',
@@ -178,7 +174,7 @@ class AssignmentDetailSerializer(serializers.ModelSerializer):
             'use_custom_score', 'custom_max_score', 'custom_min_score',
             'score_multiplier', 'score_note',
             'max_score', 'min_score_value', 'effective_weight', 'score_info',
-            'submissions', 'created_at', 'updated_at'
+            'progress_items', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_by', 'created_at', 'updated_at']
     
@@ -229,18 +225,18 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
         model = Assignment
         fields = [
             'title', 'description', 'category_id',
-            'assigned_to', 'priority', 'deadline',
+            'teacher', 'priority', 'deadline',
             'file_attachment', 'max_file_size_mb', 'allowed_file_types'
         ]
     
     def validate_deadline(self, value):
-        if value <= timezone.now():
+        if value and value <= timezone.now():
             raise serializers.ValidationError(
                 "Muddat kelajakda bo'lishi kerak"
             )
         return value
     
-    def validate_assigned_to(self, value):
+    def validate_teacher(self, value):
         if value and value.role not in ['teacher', 'admin']:
             raise serializers.ValidationError(
                 "Topshiriq faqat o'qituvchi yoki adminlarga berilishi mumkin"
